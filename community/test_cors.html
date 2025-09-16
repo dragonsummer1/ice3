@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #d32f2f;
+        }
+        .success {
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CORS跨域登录测试</h1>
+        
+        <div class="form-group">
+            <label for="username">用户名:</label>
+            <input type="text" id="username" value="admin" placeholder="请输入用户名">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码:</label>
+            <input type="password" id="password" value="admin123" placeholder="请输入密码">
+        </div>
+        
+        <button onclick="testLogin()">测试登录</button>
+        <button onclick="testProtectedResource()">测试受保护资源</button>
+        
+        <div class="response">
+            <h3>响应结果:</h3>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 基础URL配置
+        const BASE_URL = 'http://localhost:5000';
+        
+        // 输出日志函数
+        function log(message, type = 'info') {
+            const resultDiv = document.getElementById('result');
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = message;
+            resultDiv.appendChild(logEntry);
+            resultDiv.scrollTop = resultDiv.scrollHeight;
+        }
+        
+        // 清空日志
+        function clearLog() {
+            document.getElementById('result').innerHTML = '';
+        }
+        
+        // 测试登录
+        function testLogin() {
+            clearLog();
+            log('开始测试登录请求...');
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const loginUrl = `${BASE_URL}/api/auth/login`;
+            
+            fetch(loginUrl, {
+                method: 'POST',
+                credentials: 'include', // 允许携带凭证（cookie）
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Origin会由浏览器自动添加，这里我们显式设置以模拟前端应用
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => {
+                // 打印响应状态码
+                log(`响应状态码: ${response.status}`);
+                
+                // 打印CORS相关头信息
+                log('CORS响应头:');
+                let hasCorsHeaders = false;
+                for (const [key, value] of response.headers.entries()) {
+                    if (key.toLowerCase().startsWith('access-control')) {
+                        hasCorsHeaders = true;
+                        log(`  ${key}: ${value}`);
+                    }
+                }
+                
+                if (!hasCorsHeaders) {
+                    log('  未找到CORS相关响应头', 'error');
+                }
+                
+                // 检查响应是否成功
+                if (!response.ok) {
+                    throw new Error(`服务器响应错误: ${response.status}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                log('\n登录成功! 响应数据:', 'success');
+                log(JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                log(`\n登录请求失败: ${error.message}`, 'error');
+                console.error('登录错误:', error);
+            });
+        }
+        
+        // 测试访问受保护资源
+        function testProtectedResource() {
+            clearLog();
+            log('开始测试访问受保护资源...');
+            
+            const protectedUrl = `${BASE_URL}/api/auth/current-user`;
+            
+            fetch(protectedUrl, {
+                method: 'GET',
+                credentials: 'include', // 允许携带凭证
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
+                log(`响应状态码: ${response.status}`);
+                
+                // 打印CORS相关头信息
+                log('CORS响应头:');
+                let hasCorsHeaders = false;
+                for (const [key, value] of response.headers.entries()) {
+                    if (key.toLowerCase().startsWith('access-control')) {
+                        hasCorsHeaders = true;
+                        log(`  ${key}: ${value}`);
+                    }
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`服务器响应错误: ${response.status}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                log('\n访问受保护资源成功! 响应数据:', 'success');
+                log(JSON.stringify(data, null, 2));
+            })
+            .catch(error => {
+                log(`\n访问受保护资源失败: ${error.message}`, 'error');
+                console.error('受保护资源访问错误:', error);
+            });
+        }
+        
+        // 显示当前浏览器的Origin
+        log(`当前页面Origin: ${window.location.origin}`);
+        log('请点击按钮开始测试...');
+    </script>
+</body>
+</html>

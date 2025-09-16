@@ -1,0 +1,11 @@
+{
+  "model": "shizuku",
+  "version": "1.0",
+  "description": "Live2D 示例模型",
+  "author": "Live2D Inc.",
+  "textures": ["shizuku.2048/texture_00.png"],
+  "motions": {
+    "idle": ["idle_00.mtn"],
+    "tap_body": ["tap_body.mtn"]
+  }
+}

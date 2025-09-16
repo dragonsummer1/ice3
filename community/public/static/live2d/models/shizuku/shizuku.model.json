@@ -1,0 +1,66 @@
+{
+  "model": {
+    "type": "Live2D Model Setting",
+    "name": "shizuku",
+    "model_file": "shizuku.moc",
+    "texture_files": [
+      "shizuku.2048/texture_00.png"
+    ],
+    "physics_file": "shizuku.physics.json",
+    "pose_file": "shizuku.pose.json",
+    "expressions": [
+      {
+        "name": "default",
+        "file": "expressions/default.exp3.json"
+      },
+      {
+        "name": "happy",
+        "file": "expressions/happy.exp3.json"
+      },
+      {
+        "name": "angry",
+        "file": "expressions/angry.exp3.json"
+      },
+      {
+        "name": "sad",
+        "file": "expressions/sad.exp3.json"
+      }
+    ],
+    "motions": {
+      "idle": [
+        {
+          "file": "motions/idle_00.mtn",
+          "fade_in": 2000,
+          "fade_out": 2000
+        },
+        {
+          "file": "motions/idle_01.mtn",
+          "fade_in": 2000,
+          "fade_out": 2000
+        }
+      ],
+      "tap_body": [
+        {
+          "file": "motions/tap_body.mtn",
+          "fade_in": 500,
+          "fade_out": 500
+        }
+      ]
+    },
+    "layout": {
+      "center_x": 0,
+      "y": -0.2,
+      "width": 2
+    },
+    "hit_areas": [
+      {
+        "name": "head",
+        "id": "Head"
+      },
+      {
+        "name": "body",
+        "id": "Body"
+      }
+    ]
+  }
+}

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录功能测试</title>
+    <!-- 导入Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 导入Pinia -->
+    <script src="https://unpkg.com/pinia@2/dist/pinia.iife.js"></script>
+    <!-- 导入Axios -->
+    <script src="https://unpkg.com/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #d32f2f;
+        }
+        .success {
+            color: #2e7d32;
+        }
+        .loading {
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>登录功能测试</h1>
+        
+        <div class="form-group">
+            <label for="username">用户名:</label>
+            <input type="text" id="username" value="admin" placeholder="请输入用户名">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码:</label>
+            <input type="password" id="password" value="admin123" placeholder="请输入密码">
+        </div>
+        
+        <button id="loginBtn" onclick="testLogin()">测试登录</button>
+        <button id="checkBtn" onclick="checkStatus()" disabled>检查登录状态</button>
+        
+        <div class="response">
+            <h3>日志输出:</h3>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        // 创建日志输出函数
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.textContent = message;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        // 清空日志
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        // 模拟auth.js中的store实现
+        const { createPinia, defineStore } = Pinia;
+        
+        // 创建pinia实例
+        const pinia = createPinia();
+        
+        // 定义auth store
+        const useAuthStore = defineStore('auth', {
+            state: () => ({
+                user: null,
+                isAuthenticated: false,
+                loading: false,
+                error: null
+            }),
+            
+            actions: {
+                // 设置axios基础URL
+                initAxios() {
+                    axios.defaults.baseURL = 'http://localhost:5000';
+                    axios.defaults.withCredentials = true;
+                    
+                    // 添加请求拦截器
+                    axios.interceptors.request.use(
+                        (config) => {
+                            config.withCredentials = true;
+                            return config;
+                        },
+                        (error) => {
+                            return Promise.reject(error);
+                        }
+                    );
+                },
+                
+                // 用户登录
+                async login(credentials) {
+                    this.loading = true;
+                    this.error = null;
+                    
+                    try {
+                        log('发送登录请求...', 'loading');
+                        const response = await axios.post('/api/auth/login', credentials);
+                        const { user } = response.data;
+                        
+                        // 保存用户信息到localStorage
+                        localStorage.setItem('user', JSON.stringify(user));
+                        this.user = user;
+                        this.isAuthenticated = true;
+                        
+                        log(`登录成功! 用户: ${user.username}`, 'success');
+                        return response.data;
+                    } catch (error) {
+                        const errorMsg = error.response?.data?.message || '登录失败';
+                        this.error = errorMsg;
+                        log(`登录失败: ${errorMsg}`, 'error');
+                        log(`错误详情: ${error}`, 'error');
+                        throw error;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                // 检查登录状态
+                async checkStatus() {
+                    try {
+                        log('检查登录状态...', 'loading');
+                        const response = await axios.get('/api/auth/check');
+                        if (response.data.authenticated) {
+                            log('用户已登录!', 'success');
+                            
+                            // 获取用户信息
+                            const profileResponse = await axios.get('/api/auth/current-user');
+                            log(`当前用户: ${JSON.stringify(profileResponse.data, null, 2)}`, 'success');
+                        } else {
+                            log('用户未登录', 'info');
+                        }
+                    } catch (error) {
+                        log(`检查登录状态失败: ${error}`, 'error');
+                    }
+                }
+            }
+        });
+        
+        // 初始化auth store
+        const authStore = useAuthStore(pinia);
+        authStore.initAxios();
+        
+        // 测试登录函数
+        async function testLogin() {
+            clearLog();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                await authStore.login({ username, password });
+                
+                // 启用检查状态按钮
+                document.getElementById('checkBtn').disabled = false;
+                log('登录功能测试完成，可以点击"检查登录状态"按钮验证', 'success');
+            } catch (error) {
+                log('登录功能测试失败', 'error');
+            }
+        }
+        
+        // 检查登录状态函数
+        async function checkStatus() {
+            clearLog();
+            await authStore.checkStatus();
+        }
+        
+        log('页面加载完成，请点击"测试登录"按钮开始测试');
+        log('注意：请确保后端服务已经启动 (http://localhost:5000)');
+    </script>
+</body>
+</html>
