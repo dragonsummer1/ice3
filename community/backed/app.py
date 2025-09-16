@@ -36,7 +36,7 @@ def create_app(config_name):
          resources={r"/api/*": {
              "origins": ["http://localhost:5173", "http://localhost:5174"],
              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With", "x-tab-id"],
              "expose_headers": ["Content-Type", "Authorization"],
              "supports_credentials": True,
              "max_age": 86400  # 24小时缓存预检请求
@@ -51,7 +51,7 @@ def create_app(config_name):
         origin = request.headers.get('Origin')
         if origin in allowed_origins:
             response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,x-tab-id')
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response

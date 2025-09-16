@@ -14,10 +14,15 @@ axios.defaults.baseURL = 'http://localhost:5000'
 // 全局设置withCredentials，确保所有跨域请求都能携带凭证
 axios.defaults.withCredentials = true
 
-// 添加请求拦截器，确保跨域请求携带凭证
+// 添加请求拦截器，确保跨域请求携带凭证和标签页ID
 axios.interceptors.request.use(
   (config) => {
     config.withCredentials = true
+    // 获取当前标签页ID并添加到请求头
+    const tabId = sessionStorage.getItem('tabId')
+    if (tabId) {
+      config.headers['X-Tab-Id'] = tabId
+    }
     return config
   },
   (error) => {

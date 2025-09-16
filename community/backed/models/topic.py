@@ -1,5 +1,6 @@
 from datetime import datetime
 from models.db import db
+from datetime import datetime
 
 class Topic(db.Model):
     __tablename__ = 'topics'
@@ -13,6 +14,7 @@ class Topic(db.Model):
     views = db.Column(db.Integer, default=0)
     replies = db.Column(db.Integer, default=0)
     last_reply_time = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='pending')  # pending, published, blocked
     
     # 关系
     author = db.relationship('User', backref=db.backref('topics', lazy=True))
@@ -31,5 +33,7 @@ class Topic(db.Model):
             'views': self.views,
             'replies': self.replies,
             'last_reply_time': self.last_reply_time.strftime('%Y-%m-%d %H:%M:%S') if self.last_reply_time else None,
-            'author': self.author.username if self.author else '未知用户'
+            'author': self.author.username if self.author else '未知用户',
+            'status': self.status,
+            'user': {'username': self.author.username if self.author else '未知用户'} if self.author else None
         }

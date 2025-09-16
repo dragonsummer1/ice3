@@ -42,6 +42,10 @@
             <i class="el-icon-user"></i>
             <span>用户管理</span>
           </el-menu-item>
+          <el-menu-item index="/admin/topics">
+            <i class="el-icon-document"></i>
+            <span>话题管理</span>
+          </el-menu-item>
           <el-menu-item index="/admin/comments">
             <i class="el-icon-chat-line-round"></i>
             <span>评论管理</span>
@@ -76,8 +80,8 @@ export default {
     });
     
     // 处理退出登录
-    const handleLogout = () => {
-      authStore.logout();
+    const handleLogout = async () => {
+      await authStore.logout();
       router.push('/login');
     };
     

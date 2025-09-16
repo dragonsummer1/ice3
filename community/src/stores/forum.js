@@ -6,6 +6,8 @@ export const useForumStore = defineStore('forum', {
     topics: [],
     currentTopic: null,
     replies: [],
+    hotComments: [],
+    userComments: [],
     loading: false,
     error: null,
     totalPages: 1,
@@ -143,6 +145,70 @@ export const useForumStore = defineStore('forum', {
     // 清除错误信息
     clearError() {
       this.error = null;
+    },
+
+    // 获取热门评论
+    async getHotComments(category = '', days = 7) {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const params = {};
+        if (category) {
+          params.category = category;
+        }
+        if (days) {
+          params.days = days;
+        }
+        
+        const response = await axios.get('/api/forum/hot-comments', { params });
+        this.hotComments = response.data.comments;
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || '获取热门评论失败';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // 获取用户评论历史
+    async getUserComments(page = 1, perPage = 10) {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await axios.get('/api/forum/my-comments', {
+          params: { page, per_page: perPage }
+        });
+        this.userComments = response.data.comments;
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || '获取评论历史失败';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // 删除评论
+    async deleteComment(commentId) {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await axios.delete(`/api/forum/comments/${commentId}`);
+        // 从用户评论列表中移除已删除的评论
+        if (this.userComments.length > 0) {
+          this.userComments = this.userComments.filter(comment => comment.id !== commentId);
+        }
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || '删除评论失败';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
     }
   }
 });

@@ -7,12 +7,27 @@ axios.defaults.baseURL = 'http://localhost:5000';
 // 全局设置withCredentials，确保所有请求都能携带凭证
 axios.defaults.withCredentials = true;
 
-// 添加请求拦截器，确保跨域请求携带凭证
-// 当前使用Flask-Login进行认证，需要确保withCredentials设置为true
-// 以允许浏览器发送session cookie
+// 为当前标签页生成唯一ID
+const generateTabId = () => {
+  return 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+};
+
+// 获取当前标签页ID，如果不存在则生成新的
+const getTabId = () => {
+  let tabId = sessionStorage.getItem('tabId');
+  if (!tabId) {
+    tabId = generateTabId();
+    sessionStorage.setItem('tabId', tabId);
+  }
+  return tabId;
+};
+
+// 添加请求拦截器，确保跨域请求携带凭证和标签页ID
 axios.interceptors.request.use(
   (config) => {
     config.withCredentials = true;
+    // 在请求头中添加标签页ID
+    config.headers['X-Tab-Id'] = getTabId();
     return config;
   },
   (error) => {
@@ -76,15 +91,20 @@ export const useAuthStore = defineStore('auth', {
       
       try {
         console.log('Attempting login with:', credentials.username);
+        // 为当前登录生成新的标签页ID，确保与其他标签页隔离
+        const newTabId = generateTabId();
+        sessionStorage.setItem('tabId', newTabId);
+        
         // 添加remember参数，确保会话持久性
         const loginData = {
           ...credentials,
-          remember: true
+          remember: false, // 不使用长期cookie，以支持标签页隔离
+          tabId: newTabId // 传递标签页ID给后端
         };
         const response = await axios.post('/api/auth/login', loginData);
         const { user } = response.data;
         
-        console.log('Login successful for user:', user.username);
+        console.log('Login successful for user:', user.username, 'on tab:', newTabId);
         // 只保存用户信息到sessionStorage，避免不同标签页共享认证状态
         sessionStorage.setItem('user', JSON.stringify(user));
         this.user = user;
@@ -106,15 +126,25 @@ export const useAuthStore = defineStore('auth', {
     },
     
     // 用户登出
-    logout() {
-      // 清除sessionStorage中的用户信息
-      sessionStorage.removeItem('user');
-      // 清除store中的用户信息
-      this.user = null;
-      this.isAuthenticated = false;
-      // 重定向到登录页面，使用router.push代替window.location.href以避免整页刷新
-      if (!router.currentRoute.value.path.includes('/login')) {
-        router.push('/login');
+    async logout() {
+      try {
+        // 获取标签页ID
+        const tabId = sessionStorage.getItem('tabId');
+        // 发送注销请求到后端，携带标签页ID
+        await axios.post('/api/auth/logout', { tabId });
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        // 清除sessionStorage中的用户信息
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('tabId');
+        // 清除store中的用户信息
+        this.user = null;
+        this.isAuthenticated = false;
+        // 重定向到登录页面，使用router.push代替window.location.href以避免整页刷新
+        if (!router.currentRoute.value.path.includes('/login')) {
+          router.push('/login');
+        }
       }
     },
     

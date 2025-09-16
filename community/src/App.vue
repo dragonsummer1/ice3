@@ -71,8 +71,8 @@ export default {
     })
     
     // 处理退出登录
-    const handleLogout = () => {
-      authStore.logout()
+    const handleLogout = async () => {
+      await authStore.logout()
     }
     
     // 在组件挂载时检查用户登录状态

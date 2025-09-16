@@ -193,116 +193,6 @@ export default {
         { id: 'other', name: '其他', count: 50 }
       ],
       selectedCategory: 'all',
-      topics: [
-        {
-          id: 1,
-          title: '哈尔滨冰雪大世界最全攻略：门票、交通、拍照地点一网打尽',
-          author: '冰雪达人',
-          authorAvatar: '冰',
-          tag: '攻略',
-          replies: 45,
-          views: 1250,
-          time: '2024-01-18 10:30',
-          lastReplyTime: '2024-01-19 15:42',
-          category: 'guides',
-          content: '作为连续三年去冰雪大世界的老游客，今天给大家分享一下我的经验。\n\n门票：建议提前在官方渠道购买，比现场便宜20元。学生票有优惠，记得带学生证。\n\n交通：推荐乘坐地铁2号线到冰雪大世界站，出站步行5分钟即到。避免打车，高峰期容易堵车。\n\n拍照：最佳拍照时间是下午4点到6点，可以同时拍到白天和夜晚的景色。推荐几个拍照点位：主塔前、冰滑梯附近、雪雕区。\n\n穿着：一定要穿保暖内衣、羽绒服、防滑鞋。帽子、围巾、手套缺一不可。\n\n餐饮：景区内餐饮价格较高，建议自带一些高热量零食。热水很重要，可以带个保温杯。\n\n希望这些信息对大家有帮助！有问题可以在下面留言。',
-          replyList: [
-            {
-              id: 101,
-              author: '南方游客',
-              time: '2024-01-18 11:20',
-              content: '非常感谢分享！请问景区内有存放行李的地方吗？'
-            },
-            {
-              id: 102,
-              author: '冰雪达人',
-              time: '2024-01-18 11:30',
-              content: '有的，景区入口处有行李寄存处，收费标准是10元/件。'
-            }
-          ]
-        },
-        {
-          id: 2,
-          title: '1月25日左右有人想去雪乡吗？求结伴同行！',
-          author: '旅行的小明',
-          authorAvatar: '明',
-          tag: '结伴',
-          replies: 28,
-          views: 890,
-          time: '2024-01-17 15:30',
-          lastReplyTime: '2024-01-19 10:15',
-          category: 'companions',
-          content: '大家好，我是小明，计划1月25日从哈尔滨出发去雪乡，大概玩3天左右。有没有小伙伴想一起的？\n\n我是男生，26岁，性格开朗，喜欢拍照。希望能找到2-3个小伙伴一起拼车、拼房，互相拍照。\n\n有兴趣的可以留言或者私信我！',
-          replyList: [
-            {
-              id: 201,
-              author: '小橙子',
-              time: '2024-01-17 16:00',
-              content: '我有兴趣！我是女生，也是一个人，可以一起吗？'
-            },
-            {
-              id: 202,
-              author: '旅行的小明',
-              time: '2024-01-17 16:10',
-              content: '当然可以！我们可以加个微信详细聊聊。'
-            }
-          ]
-        },
-        {
-          id: 3,
-          title: '哈尔滨哪家俄式餐厅最正宗？求推荐！',
-          author: '美食探险家',
-          authorAvatar: '美',
-          tag: '美食',
-          replies: 36,
-          views: 1120,
-          time: '2024-01-16 18:45',
-          lastReplyTime: '2024-01-19 09:30',
-          category: 'food',
-          content: '来哈尔滨怎么能不吃俄式大餐呢？想问一下本地人和去过的小伙伴，哪家俄式餐厅最正宗？价格如何？\n\n主要想尝试红菜汤、俄式牛排、大列巴、格瓦斯这些经典菜品。\n\n另外，有没有什么隐藏的小店推荐？',
-          replyList: [
-            {
-              id: 301,
-              author: '哈尔滨本地人',
-              time: '2024-01-16 19:00',
-              content: '推荐华梅西餐厅，百年老店，非常正宗。价格略贵，但值得一试。'
-            },
-            {
-              id: 302,
-              author: '吃货一枚',
-              time: '2024-01-16 19:30',
-              content: '如果想性价比高一些，可以去露西亚西餐厅，环境也很棒。'
-            }
-          ]
-        },
-        {
-          id: 4,
-          title: '哈尔滨冬季旅游住宿推荐',
-          author: '酒店测评师',
-          authorAvatar: '酒',
-          tag: '住宿',
-          replies: 24,
-          views: 950,
-          time: '2024-01-15 14:20',
-          lastReplyTime: '2024-01-18 16:40',
-          category: 'accommodation',
-          content: '根据我多年的测评经验，给大家推荐几家性价比高的酒店：\n\n1. 中央大街附近：哈尔滨香格里拉大酒店 - 位置绝佳，服务一流\n2. 冰雪大世界附近：哈尔滨冰雪主题酒店 - 特色体验，价格合理\n3. 性价比之选：汉庭酒店（中央大街店） - 经济实惠，干净整洁\n\n冬季住宿特别要注意供暖和热水问题，建议提前确认。另外，节假日期间一定要提前预订！',
-          replyList: [
-            {
-              id: 401,
-              author: '预算有限',
-              time: '2024-01-15 15:00',
-              content: '有没有更便宜的青旅推荐？'
-            },
-            {
-              id: 402,
-              author: '酒店测评师',
-              time: '2024-01-15 15:30',
-              content: '推荐哈尔滨国际青年旅舍，位置好，氛围棒，价格实惠。'
-            }
-          ]
-        }
-      ],
       selectedTopic: null,
       replyContent: '',
       currentPage: 1,
@@ -329,15 +219,22 @@ export default {
     this.animateOnScroll();
   },
   computed: {
+    // 从forumStore获取话题数据，确保实时更新
+    topics() {
+      return this.forumStore.topics || []
+    },
+    
     filteredTopics() {
       if (this.selectedCategory === 'all') {
         return this.topics
       }
       return this.topics.filter(topic => topic.category === this.selectedCategory)
     },
+    
     totalPages() {
       return Math.ceil(this.filteredTopics.length / this.pageSize)
     },
+    
     hotTopics() {
       // 简单地取前5个回复最多的话题作为热门话题
       return [...this.topics]

@@ -84,7 +84,7 @@ export const useAdminStore = defineStore('admin', {
     },
     
     // 获取所有话题（包括待审核和已屏蔽的）
-    async getAllTopics(page = 1, perPage = 10, status = '') {
+    async getTopics(page = 1, perPage = 10, status = '') {
       this.loading = true;
       this.error = null;
       
@@ -116,6 +116,12 @@ export const useAdminStore = defineStore('admin', {
       
       try {
         const response = await axios.put(`/api/admin/topics/${topicId}/status`, { status });
+        
+        // 状态更新成功后，刷新论坛的话题列表，确保已发布的话题能立即显示在前端
+        const { useForumStore } = await import('./forum.js');
+        const forumStore = useForumStore();
+        await forumStore.getTopics();
+        
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.message || '更新话题状态失败';

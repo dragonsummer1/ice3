@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models.comment import Comment
 from models.topic import Topic
 from models.db import db
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # 创建蓝图
 bp = Blueprint('forum', __name__)
@@ -16,8 +16,8 @@ def get_topics():
     per_page = request.args.get('per_page', 10, type=int)
     category = request.args.get('category', '', type=str)
     
-    # 构建查询
-    query = Topic.query
+    # 构建查询 - 只返回已发布的话题
+    query = Topic.query.filter_by(status='published')
     if category:
         query = query.filter_by(category=category)
     
@@ -286,6 +286,42 @@ def get_my_comments():
         'total': pagination.total,
         'pages': pagination.pages,
         'current_page': pagination.page
+    }
+    
+    return jsonify(result), 200
+
+# 获取热门评论
+@bp.route('/hot-comments', methods=['GET'])
+def get_hot_comments():
+    # 获取查询参数
+    category = request.args.get('category', '', type=str)
+    days = request.args.get('days', 7, type=int)  # 默认最近7天
+    
+    # 计算日期范围
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days) if days else datetime.min
+    
+    # 构建查询：已批准的评论，时间范围内
+    query = Comment.query.filter(
+        Comment.status == 'approved',
+        Comment.created_at >= start_date,
+        Comment.created_at <= end_date
+    )
+    
+    # 如果指定了分类，加入分类筛选
+    if category:
+        # 子查询：获取指定分类的话题ID
+        topic_ids = db.session.query(Topic.id).filter(Topic.category == category).subquery()
+        query = query.filter(Comment.topic_id.in_(topic_ids))
+    
+    # 由于没有实际的点赞数数据，我们暂时按评论时间排序
+    # 在实际应用中，可以按点赞数或互动数排序
+    comments = query.order_by(Comment.created_at.desc()).all()
+    
+    # 格式化结果
+    result = {
+        'comments': [comment.to_dict() for comment in comments],
+        'total': len(comments)
     }
     
     return jsonify(result), 200

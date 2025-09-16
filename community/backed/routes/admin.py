@@ -11,6 +11,7 @@ bp = Blueprint('admin', __name__)
 
 # 导入必要的模块
 from datetime import datetime, timedelta
+from models.topic import Topic
 
 # 管理员权限检查装饰器
 def admin_required(f):
@@ -188,7 +189,7 @@ def delete_comment(comment_id):
     
     return jsonify({'message': '评论已删除'}), 200
 
-# 批量删除评论
+# 删除评论
 @bp.route('/comments/batch-delete', methods=['POST'])
 @admin_required
 def batch_delete_comments():
@@ -203,6 +204,74 @@ def batch_delete_comments():
     db.session.commit()
     
     return jsonify({'message': f'成功删除{len(comments)}条评论'}), 200
+
+# 获取所有话题（包括待审核和已屏蔽的）
+@bp.route('/topics/all', methods=['GET'])
+@admin_required
+def get_all_topics():
+    # 获取查询参数
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    status = request.args.get('status')
+    search = request.args.get('search', '')
+    
+    # 构建查询
+    query = Topic.query
+    
+    # 按状态筛选
+    if status:
+        query = query.filter_by(status=status)
+    
+    # 搜索话题标题或内容
+    if search:
+        search = f'%{search}%'
+        query = query.filter(
+            (Topic.title.like(search)) | (Topic.content.like(search))
+        )
+    
+    # 分页查询
+    pagination = query.order_by(Topic.created_at.desc()).paginate(page=page, per_page=per_page)
+    topics = pagination.items
+    
+    # 格式化结果
+    result = {
+        'topics': [topic.to_dict() for topic in topics],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': pagination.page
+    }
+    
+    return jsonify(result), 200
+
+# 更新话题状态
+@bp.route('/topics/<int:topic_id>/status', methods=['PUT'])
+@admin_required
+def update_topic_status(topic_id):
+    # 查找话题
+    topic = Topic.query.get_or_404(topic_id)
+    
+    data = request.get_json()
+    if not data or 'status' not in data:
+        return jsonify({'error': '请提供新的话题状态'}), 400
+    
+    # 更新状态
+    topic.status = data['status']
+    db.session.commit()
+    
+    return jsonify({'message': '话题状态已更新', 'topic': topic.to_dict()}), 200
+
+# 删除话题
+@bp.route('/topics/<int:topic_id>', methods=['DELETE'])
+@admin_required
+def delete_topic(topic_id):
+    # 查找话题
+    topic = Topic.query.get_or_404(topic_id)
+    
+    # 删除话题（会级联删除相关评论）
+    db.session.delete(topic)
+    db.session.commit()
+    
+    return jsonify({'message': '话题已删除'}), 200
 
 # 更新用户状态
 @bp.route('/users/<int:user_id>/status', methods=['PUT'])

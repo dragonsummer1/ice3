@@ -10,6 +10,8 @@ import AdminDashboardHome from './views/AdminDashboardHome.vue'
 import AdminUsersView from './views/AdminUsersView.vue'
 import AdminTopicsView from './views/AdminTopicsView.vue'
 import AdminCommentsView from './views/AdminCommentsView.vue'
+import HotCommentsView from './views/HotCommentsView.vue'
+import UserCommentsHistoryView from './views/UserCommentsHistory.vue'
 import { useAuthStore } from './stores/auth.js'
 
 // 导航守卫：检查用户是否登录
@@ -69,6 +71,18 @@ const routes = [
     name: 'forum',
     component: ForumView,
     beforeEnter: requireAuth // 论坛需要登录才能访问
+  },
+  {
+    path: '/forum/hot-comments',
+    name: 'hot-comments',
+    component: HotCommentsView,
+    beforeEnter: requireAuth // 需要登录才能访问
+  },
+  {
+    path: '/forum/my-comments',
+    name: 'my-comments',
+    component: UserCommentsHistoryView,
+    beforeEnter: requireAuth // 需要登录才能访问
   },
   {
     path: '/login',

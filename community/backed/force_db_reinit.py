@@ -63,6 +63,7 @@ class Topic(new_db.Model):
     views = new_db.Column(new_db.Integer, default=0)
     replies = new_db.Column(new_db.Integer, default=0)
     last_reply_time = new_db.Column(new_db.DateTime, default=datetime.utcnow)
+    status = new_db.Column(new_db.String(20), default='pending')  # pending, published, blocked
 
 def main():
     print("开始强制重新初始化数据库...")
