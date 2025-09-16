@@ -42,7 +42,7 @@
           <div class="spot flip-card">
             <div class="flip-card-inner">
               <div class="flip-card-front">
-                <img src="https://picsum.photos/800/400?random=1" alt="哈尔滨冰雪大世界" style="width: 100%; height: 200px; object-fit: cover;">
+                <img src="https://ts1.tc.mm.bing.net/th/id/R-C.7d07203bba9f27da6f3920746a18a027?rik=l%2bm%2fjlg0Q4d0lw&riu=http%3a%2f%2fimg95.699pic.com%2fphoto%2f50116%2f4211.jpg_wh860.jpg&ehk=ZylboPWKeOXXAS7LoRPu6EkaQxyD6y6Y9X6cLgGnjUg%3d&risl=&pid=ImgRaw&r=0" alt="哈尔滨冰雪大世界" style="width: 100%; height: 200px; object-fit: cover;">
                 <h4>哈尔滨冰雪大世界</h4>
                 <p>世界最大的冰雪主题乐园，每年吸引数百万游客</p>
               </div>
@@ -58,7 +58,7 @@
           <div class="spot flip-card">
             <div class="flip-card-inner">
               <div class="flip-card-front">
-                <img src="https://picsum.photos/800/400?random=2" alt="中央大街" style="width: 100%; height: 200px; object-fit: cover;">
+                <img src="https://ts2.tc.mm.bing.net/th/id/OIP-C.QWlj3cBTGXnXT9dDzNHc1AHaE8?rs=1&pid=ImgDetMain" alt="中央大街" style="width: 100%; height: 200px; object-fit: cover;">
                 <h4>中央大街</h4>
                 <p>百年历史的商业老街，充满欧洲风情的建筑和特色美食</p>
               </div>
@@ -74,7 +74,7 @@
           <div class="spot flip-card">
             <div class="flip-card-inner">
               <div class="flip-card-front">
-                <img src="https://picsum.photos/800/400?random=3" alt="松花江" style="width: 100%; height: 200px; object-fit: cover;">
+                <img src="https://youimg1.c-ctrip.com/target/100h180000013yt7w5EA2.jpg" alt="松花江" style="width: 100%; height: 200px; object-fit: cover;">
                 <h4>松花江</h4>
                 <p>冬季可以在江上进行各种冰上活动，感受北国特色</p>
               </div>
