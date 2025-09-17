@@ -74,9 +74,19 @@ export default {
     // 处理登录逻辑
     const handleLogin = async () => {
       try {
-        await authStore.login(credentials);
-        // 前端登录统一跳转到论坛页面
-        router.push('/forum');
+        const result = await authStore.login(credentials);
+        
+        // 如果是管理员用户，提示是否进入管理界面
+        if (result.user && result.user.is_admin) {
+          if (confirm('您是管理员用户，是否进入管理界面？')) {
+            router.push('/admin/dashboard');
+          } else {
+            router.push('/forum');
+          }
+        } else {
+          // 普通用户继续跳转到论坛页面
+          router.push('/forum');
+        }
       } catch (error) {
         // 错误信息已经在authStore中处理
         console.error('Login failed:', error);

@@ -31,7 +31,7 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     
     # 配置全面的CORS支持
-    # 注意：当withCredentials为true时，origins不能包含通配符*，必须是具体的源
+    # 使用Flask-CORS库统一处理CORS
     CORS(app, 
          resources={r"/api/*": {
              "origins": ["http://localhost:5173", "http://localhost:5174"],
@@ -41,20 +41,6 @@ def create_app(config_name):
              "supports_credentials": True,
              "max_age": 86400  # 24小时缓存预检请求
          }})
-
-    # 确保OPTIONS请求得到正确处理
-    @app.after_request
-    def after_request(response):
-        # 动态设置Access-Control-Allow-Origin头
-        # 从请求头中获取Origin，只允许指定的源
-        allowed_origins = ["http://localhost:5173", "http://localhost:5174"]
-        origin = request.headers.get('Origin')
-        if origin in allowed_origins:
-            response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,x-tab-id')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
     
     # 初始化扩展
     csrf.init_app(app)

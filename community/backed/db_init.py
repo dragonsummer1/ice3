@@ -1,44 +1,24 @@
+# 导入必要的模块
 import os
-import datetime
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 
-# 创建独立的Flask应用实例
+# 创建应用实例
 app = Flask(__name__)
 
-# 配置应用
+# 配置应用 - 使用与config.py相同的数据库路径
+basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'instance', 'community_forum.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# 初始化SQLAlchemy
-db = SQLAlchemy(app)
+# 导入数据库和所有必要的模型
+from models.db import db
+from models.user import User
+from models.topic import Topic
+from models.comment import Comment
 
-# 定义模型（为了避免导入冲突，这里重新定义必要的模型）
-class User(db.Model):
-    __tablename__ = 'users'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
-    status = db.Column(db.String(20), default='active')
-    
-    # 设置密码
-    def set_password(self, password):
-        from werkzeug.security import generate_password_hash
-        self.password_hash = generate_password_hash(password)
-
-class Comment(db.Model):
-    __tablename__ = 'comments'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    status = db.Column(db.String(20), default='approved')  # approved, pending, deleted
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+# 初始化数据库扩展
+db.init_app(app)
 
 # 初始化数据库
 with app.app_context():

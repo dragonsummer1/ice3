@@ -1,5 +1,20 @@
-import { defineStore } from 'pinia';
 import axios from 'axios';
+import { defineStore } from 'pinia';
+import { getTabId } from './auth.js';
+
+// 创建包含标签页ID的请求配置
+export const createRequestConfig = (config = {}) => {
+  const tabId = getTabId();
+  const headers = config.headers || {};
+  
+  return {
+    ...config,
+    headers: {
+      ...headers,
+      'X-Tab-Id': tabId
+    }
+  };
+};
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({
@@ -20,7 +35,7 @@ export const useAdminStore = defineStore('admin', {
       
       try {
         const params = { page, per_page: perPage };
-        const response = await axios.get('/api/admin/users', { params });
+        const response = await axios.get('/api/admin/users', createRequestConfig({ params }));
         
         this.users = response.data.users;
         this.totalPages = response.data.pages;
@@ -41,7 +56,7 @@ export const useAdminStore = defineStore('admin', {
       this.error = null;
       
       try {
-        const response = await axios.get(`/api/admin/users/${userId}`);
+        const response = await axios.get(`/api/admin/users/${userId}`, createRequestConfig());
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.message || '获取用户详情失败';
@@ -57,7 +72,7 @@ export const useAdminStore = defineStore('admin', {
       this.error = null;
       
       try {
-        const response = await axios.put(`/api/admin/users/${userId}`, userData);
+        const response = await axios.put(`/api/admin/users/${userId}`, userData, createRequestConfig());
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.message || '更新用户信息失败';
@@ -73,7 +88,7 @@ export const useAdminStore = defineStore('admin', {
       this.error = null;
       
       try {
-        const response = await axios.delete(`/api/admin/users/${userId}`);
+        const response = await axios.delete(`/api/admin/users/${userId}`, createRequestConfig());
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.message || '删除用户失败';
@@ -94,7 +109,7 @@ export const useAdminStore = defineStore('admin', {
           params.status = status;
         }
         
-        const response = await axios.get('/api/admin/topics/all', { params });
+        const response = await axios.get('/api/admin/topics/all', createRequestConfig({ params }));
         
         this.topics = response.data.topics;
         this.totalPages = response.data.pages;
@@ -115,7 +130,7 @@ export const useAdminStore = defineStore('admin', {
       this.error = null;
       
       try {
-        const response = await axios.put(`/api/admin/topics/${topicId}/status`, { status });
+        const response = await axios.put(`/api/admin/topics/${topicId}/status`, { status }, createRequestConfig());
         
         // 状态更新成功后，刷新论坛的话题列表，确保已发布的话题能立即显示在前端
         const { useForumStore } = await import('./forum.js');
@@ -137,38 +152,11 @@ export const useAdminStore = defineStore('admin', {
       this.error = null;
       
       try {
-        console.log('正在请求统计数据...');
-        // 从localStorage获取用户信息
-        const userData = localStorage.getItem('user');
-        // 从cookie获取JWT令牌
-        const getJwtToken = () => {
-          const nameEQ = 'access_token_cookie=';
-          const ca = document.cookie.split(';');
-          for(let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-          }
-          return null;
-        };
-        
-        const jwtToken = getJwtToken();
-        console.log('获取的JWT令牌:', jwtToken);
-        console.log('用户信息:', userData);
-        
-        // 设置请求头
-        const headers = {};
-        if (jwtToken) {
-          headers['Authorization'] = `Bearer ${jwtToken}`;
-        }
-        
-        const response = await axios.get('/api/admin/stats', { headers });
-        console.log('统计数据请求成功:', response.data);
+        const response = await axios.get('/api/admin/stats', createRequestConfig());
         this.stats = response.data;
         return response.data;
       } catch (error) {
         console.error('获取统计数据失败:', error);
-        console.error('错误详情:', error.response);
         this.error = error.response?.data?.message || '获取统计数据失败';
         throw error;
       } finally {
@@ -187,7 +175,7 @@ export const useAdminStore = defineStore('admin', {
       this.error = null;
       
       try {
-        const response = await axios.delete(`/api/admin/topics/${topicId}`);
+        const response = await axios.delete(`/api/admin/topics/${topicId}`, createRequestConfig());
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.message || '删除话题失败';
@@ -204,7 +192,7 @@ export const useAdminStore = defineStore('admin', {
       
       try {
         const params = { page, per_page: perPage };
-        const response = await axios.get('/api/admin/comments', { params });
+        const response = await axios.get('/api/admin/comments', createRequestConfig({ params }));
         
         this.totalPages = response.data.pages;
         this.currentPage = response.data.current_page;
@@ -212,6 +200,45 @@ export const useAdminStore = defineStore('admin', {
         return response.data;
       } catch (error) {
         this.error = error.response?.data?.message || '获取评论数据失败';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    // 更新评论状态
+    async updateCommentStatus(commentId, status) {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await axios.put(
+          `/api/admin/comments/${commentId}/${status === 'approved' ? 'approve' : 'reject'}`,
+          {},
+          createRequestConfig()
+        );
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || '更新评论状态失败';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    // 删除评论
+    async deleteComment(commentId) {
+      this.loading = true;
+      this.error = null;
+      
+      try {
+        const response = await axios.delete(
+          `/api/admin/comments/${commentId}`,
+          createRequestConfig()
+        );
+        return response.data;
+      } catch (error) {
+        this.error = error.response?.data?.message || '删除评论失败';
         throw error;
       } finally {
         this.loading = false;

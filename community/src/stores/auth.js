@@ -1,11 +1,6 @@
-import { defineStore } from 'pinia';
 import axios from 'axios';
 import router from '../router.js';
-
-// 设置axios基础URL
-axios.defaults.baseURL = 'http://localhost:5000';
-// 全局设置withCredentials，确保所有请求都能携带凭证
-axios.defaults.withCredentials = true;
+import { defineStore } from 'pinia';
 
 // 为当前标签页生成唯一ID
 const generateTabId = () => {
@@ -13,7 +8,7 @@ const generateTabId = () => {
 };
 
 // 获取当前标签页ID，如果不存在则生成新的
-const getTabId = () => {
+export const getTabId = () => {
   let tabId = sessionStorage.getItem('tabId');
   if (!tabId) {
     tabId = generateTabId();
@@ -21,19 +16,6 @@ const getTabId = () => {
   }
   return tabId;
 };
-
-// 添加请求拦截器，确保跨域请求携带凭证和标签页ID
-axios.interceptors.request.use(
-  (config) => {
-    config.withCredentials = true;
-    // 在请求头中添加标签页ID
-    config.headers['X-Tab-Id'] = getTabId();
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 // 导出store实例
 export const useAuthStore = defineStore('auth', {
@@ -63,8 +45,21 @@ export const useAuthStore = defineStore('auth', {
         console.log('Full URL:', axios.defaults.baseURL + '/api/auth/register');
         console.log('With credentials:', axios.defaults.withCredentials);
         
-        // 正确的API URL - 后端蓝图配置为'/api/auth'
-        const response = await axios.post('/api/auth/register', credentials);
+        // 为当前标签页生成唯一ID
+        const tabId = generateTabId();
+        sessionStorage.setItem('tabId', tabId);
+        
+        const registerData = {
+          ...credentials,
+          tabId: tabId
+        };
+        
+        // 在请求中添加标签页ID
+        const response = await axios.post('/api/auth/register', registerData, {
+          headers: {
+            'X-Tab-Id': tabId
+          }
+        });
         console.log('Registration response:', response.data);
         return response.data;
       } catch (error) {
@@ -101,7 +96,13 @@ export const useAuthStore = defineStore('auth', {
           remember: false, // 不使用长期cookie，以支持标签页隔离
           tabId: newTabId // 传递标签页ID给后端
         };
-        const response = await axios.post('/api/auth/login', loginData);
+        
+        // 在请求中添加标签页ID
+        const response = await axios.post('/api/auth/login', loginData, {
+          headers: {
+            'X-Tab-Id': newTabId
+          }
+        });
         const { user } = response.data;
         
         console.log('Login successful for user:', user.username, 'on tab:', newTabId);
@@ -172,10 +173,19 @@ export const useAuthStore = defineStore('auth', {
           
           // 同时尝试通过API验证，如果验证失败也不清除本地用户信息
           try {
-            const response = await axios.get('/api/auth/check');
+            const tabId = getTabId();
+            const response = await axios.get('/api/auth/check', {
+              headers: {
+                'X-Tab-Id': tabId
+              }
+            });
             if (response.data.authenticated) {
               // 如果API验证成功，更新用户信息
-              const profileResponse = await axios.get('/api/auth/current-user');
+              const profileResponse = await axios.get('/api/auth/current-user', {
+                headers: {
+                  'X-Tab-Id': tabId
+                }
+              });
               this.user = profileResponse.data.user;
               // 只更新sessionStorage中的用户信息
               sessionStorage.setItem('user', JSON.stringify(profileResponse.data.user));
@@ -194,11 +204,20 @@ export const useAuthStore = defineStore('auth', {
       console.log('Making API call to /api/auth/check');
       
       try {
-        const response = await axios.get('/api/auth/check');
+        const tabId = getTabId();
+        const response = await axios.get('/api/auth/check', {
+          headers: {
+            'X-Tab-Id': tabId
+          }
+        });
         if (response.data.authenticated) {
           this.isAuthenticated = true;
           // 更新用户信息
-          const profileResponse = await axios.get('/api/auth/current-user');
+          const profileResponse = await axios.get('/api/auth/current-user', {
+            headers: {
+              'X-Tab-Id': tabId
+            }
+          });
           this.user = profileResponse.data.user;
           // 只更新sessionStorage中的用户信息
           sessionStorage.setItem('user', JSON.stringify(profileResponse.data.user));
@@ -231,5 +250,4 @@ export const useAuthStore = defineStore('auth', {
   }
 });
 
-// 添加默认导出，以便在router.js中可以使用默认导入
-export default useAuthStore;
+// 只保留命名导出，避免导入方式不一致导致的问题

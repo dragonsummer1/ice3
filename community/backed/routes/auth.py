@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, flash, redirect, url_for, session
+from flask import Blueprint, request, jsonify, session
 from flask_login import login_user, logout_user, login_required, current_user
 from models.user import User
 from models.db import db
@@ -77,6 +77,9 @@ def login():
     
     # 设置会话信息
     session['tab_id'] = tab_id
+    
+    # 使用Flask-Login的login_user函数，确保用户会话正确设置
+    login_user(user, remember=True)
     
     # 返回用户信息
     return jsonify({

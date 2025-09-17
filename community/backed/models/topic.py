@@ -1,6 +1,7 @@
 from datetime import datetime
 from models.db import db
 from datetime import datetime
+from models.user import User
 
 class Topic(db.Model):
     __tablename__ = 'topics'
@@ -22,6 +23,10 @@ class Topic(db.Model):
     comments = db.relationship('Comment', backref='topic', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
+        # 直接通过user_id从数据库获取正确的用户信息
+        user = User.query.get(self.user_id)
+        username = user.username if user else '未知用户'
+        
         return {
             'id': self.id,
             'title': self.title,
@@ -33,7 +38,7 @@ class Topic(db.Model):
             'views': self.views,
             'replies': self.replies,
             'last_reply_time': self.last_reply_time.strftime('%Y-%m-%d %H:%M:%S') if self.last_reply_time else None,
-            'author': self.author.username if self.author else '未知用户',
+            'author': username,
             'status': self.status,
-            'user': {'username': self.author.username if self.author else '未知用户'} if self.author else None
+            'user': {'username': username}
         }

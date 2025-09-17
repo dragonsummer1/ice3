@@ -23,11 +23,15 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# 管理员仪表盘
+# 管理员仪表盘（返回JSON数据而非HTML模板）
 @bp.route('/dashboard')
 @admin_required
 def admin_dashboard():
-    return render_template('admin_dashboard.html')
+    return jsonify({
+        'message': '欢迎访问管理员后台',
+        'admin': current_user.to_dict(),
+        'version': '1.0.0'
+    }), 200
 
 # 获取用户列表
 @bp.route('/users', methods=['GET'])

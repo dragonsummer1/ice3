@@ -87,14 +87,14 @@
 </template>
 
 <script>
-import { onMounted, ref, reactive, computed } from 'vue';
-import axios from 'axios';
+import { onMounted, ref, computed, watch } from 'vue';
+import { useAdminStore } from '../stores/admin.js';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
 export default {
   name: 'AdminCommentsView',
   setup() {
-    const loading = ref(false);
+    const adminStore = useAdminStore();
     const comments = ref([]);
     const totalComments = ref(0);
     const currentPage = ref(1);
@@ -105,13 +105,13 @@ export default {
     // 格式化日期
     const formatDate = (dateString) => {
       const date = new Date(dateString);
-      return date.toLocaleString('zh-CN', {
+      return new Intl.DateTimeFormat('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit'
-      });
+      }).format(date);
     };
 
     // 获取状态标签类型
@@ -144,7 +144,6 @@ export default {
 
     // 加载评论列表
     const loadComments = async () => {
-      loading.value = true;
       try {
         const params = {
           page: currentPage.value,
@@ -159,21 +158,19 @@ export default {
           params.search = searchKeyword.value;
         }
 
-        const response = await axios.get('/api/admin/comments', { params });
-        comments.value = response.data.comments;
-        totalComments.value = response.data.total;
+        const response = await adminStore.getComments(currentPage.value, pageSize.value);
+        comments.value = response.comments || [];
+        totalComments.value = response.total || 0;
       } catch (error) {
         console.error('加载评论失败:', error);
         ElMessage.error('加载评论失败');
-      } finally {
-        loading.value = false;
       }
     };
 
     // 批准评论
     const handleApprove = async (comment) => {
       try {
-        await axios.put(`/api/admin/comments/${comment.id}/approve`);
+        await adminStore.updateCommentStatus(comment.id, 'approved');
         comment.status = 'approved';
         ElMessage.success('评论已批准');
       } catch (error) {
@@ -185,7 +182,7 @@ export default {
     // 驳回评论
     const handleReject = async (comment) => {
       try {
-        await axios.put(`/api/admin/comments/${comment.id}/reject`);
+        await adminStore.updateCommentStatus(comment.id, 'pending');
         comment.status = 'pending';
         ElMessage.success('评论已驳回');
       } catch (error) {
@@ -202,7 +199,7 @@ export default {
         type: 'warning'
       }).then(async () => {
         try {
-          await axios.delete(`/api/admin/comments/${comment.id}`);
+          await adminStore.deleteComment(comment.id);
           const index = comments.value.findIndex(item => item.id === comment.id);
           if (index !== -1) {
             comments.value.splice(index, 1);
@@ -231,6 +228,12 @@ export default {
       loadComments();
     };
 
+    // 监听筛选条件变化
+    watch([statusFilter, searchKeyword], () => {
+      currentPage.value = 1;
+      loadComments();
+    });
+
     // 初始化
     onMounted(() => {
       loadComments();
@@ -238,6 +241,7 @@ export default {
 
     // 计算属性，用于确保commentsData始终与comments同步
     const commentsData = computed(() => comments.value);
+    const loading = computed(() => adminStore.loading);
     
     return {
       loading,
@@ -258,8 +262,7 @@ export default {
       handleCurrentChange
     };
   }
-};
-</script>
+};</script>
 
 <style scoped>
 .admin-comments {
